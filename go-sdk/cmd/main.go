@@ -8,5 +8,17 @@ import (
 )
 
 func main() {
-	fmt.Println(payment.ProcessPayment())
+	details := payment.PaymentDetails{
+		TransactionID:        "123",
+		PaymentMethod:        "Mpesa",
+		CountryCode:          "KE",
+		Amount:               1000,
+		CustomerMobileNumber: "+254726325093",
+		PaymentMethodProperties: map[string]interface{}{
+			"key": "value",
+		},
+	}
+
+	result := payment.Process(details)
+	fmt.Println(result)
 }
