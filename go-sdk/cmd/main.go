@@ -9,16 +9,21 @@ import (
 
 func main() {
 	details := payment.PaymentDetails{
-		TransactionID:        "123",
+		TransactionID:        "ewewe",
 		PaymentMethod:        "Mpesa",
 		CountryCode:          "KE",
-		Amount:               1000,
+		Amount:               0,
 		CustomerMobileNumber: "+254726325093",
 		PaymentMethodProperties: map[string]interface{}{
 			"key": "value",
 		},
 	}
 
-	result := payment.Process(details)
+	result, err := payment.Process(details)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
 	fmt.Println(result)
 }

@@ -1,15 +1,9 @@
-// Package payment provides functionality for processing payments.
 package payment
 
-// ProcessPayment returns a processed payment message.
-/**
-- transactionId
-- paymentMethod
-- countryCode
-- amount
-- customerMobileNumber
-- paymentMethodProperties - each payment method may have unique properites
-**/
+import (
+	"fmt"
+	"strings"
+)
 
 type PaymentDetails struct {
 	TransactionID           string
@@ -25,6 +19,37 @@ type PaymentProcessor interface {
 	Validate(details PaymentDetails) bool
 }
 
-func Process(details PaymentDetails) PaymentDetails {
-	return details
+// missing fields
+func ValidatePaymentDetails(details PaymentDetails) error {
+	var missingFields []string
+
+	fieldValidations := map[string]func(PaymentDetails) bool{
+		"TransactionID":                   func(d PaymentDetails) bool { return d.TransactionID != "" },
+		"PaymentMethod":                   func(d PaymentDetails) bool { return d.PaymentMethod != "" },
+		"CountryCode":                     func(d PaymentDetails) bool { return d.CountryCode != "" },
+		"CustomerMobileNumber":            func(d PaymentDetails) bool { return d.CustomerMobileNumber != "" },
+		"Amount (must be greater than 0)": func(d PaymentDetails) bool { return d.Amount > 0 },
+		"PaymentMethodProperties":         func(d PaymentDetails) bool { return d.PaymentMethodProperties != nil },
+	}
+
+	for fieldName, validation := range fieldValidations {
+		if !validation(details) {
+			missingFields = append(missingFields, fieldName)
+		}
+	}
+
+	if len(missingFields) > 0 {
+		return fmt.Errorf("Missing or invalid mandatory fields: %s", strings.Join(missingFields, ", "))
+	}
+
+	return nil
+
+}
+
+func Process(details PaymentDetails) (string, error) {
+	// Add validation
+	if err := ValidatePaymentDetails(details); err != nil {
+		return "", err
+	}
+	return "dsdsdsdd", nil
 }
