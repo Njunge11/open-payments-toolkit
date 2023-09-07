@@ -1,8 +1,7 @@
 package payment
 
 import (
-	"fmt"
-	"strings"
+	"github.com/Njunge11/open-payments-toolkit/go-sdk/validation"
 )
 
 type PaymentDetails struct {
@@ -15,41 +14,46 @@ type PaymentDetails struct {
 }
 
 type PaymentProcessor interface {
-	ProcessPayment(details PaymentDetails) string
-	Validate(details PaymentDetails) bool
+	ProcessPayment(details PaymentDetails) (string, error)
+	Validate(details PaymentDetails) error
 }
 
-// missing fields
-func ValidatePaymentDetails(details PaymentDetails) error {
-	var missingFields []string
-
-	fieldValidations := map[string]func(PaymentDetails) bool{
-		"TransactionID":                   func(d PaymentDetails) bool { return d.TransactionID != "" },
-		"PaymentMethod":                   func(d PaymentDetails) bool { return d.PaymentMethod != "" },
-		"CountryCode":                     func(d PaymentDetails) bool { return d.CountryCode != "" },
-		"CustomerMobileNumber":            func(d PaymentDetails) bool { return d.CustomerMobileNumber != "" },
-		"Amount (must be greater than 0)": func(d PaymentDetails) bool { return d.Amount > 0 },
-		"PaymentMethodProperties":         func(d PaymentDetails) bool { return d.PaymentMethodProperties != nil },
+func CheckForMissingPaymentDetails(details PaymentDetails) error {
+	var missingPaymentDetails []validation.ValidationError
+	paymentDetailsValidations := map[string]func(PaymentDetails) bool{
+		"TransactionID":           func(d PaymentDetails) bool { return d.TransactionID != "" },
+		"PaymentMethod":           func(d PaymentDetails) bool { return d.PaymentMethod != "" },
+		"CountryCode":             func(d PaymentDetails) bool { return d.CountryCode != "" },
+		"Amount":                  func(d PaymentDetails) bool { return d.Amount > 0 },
+		"CustomerMobileNumber":    func(d PaymentDetails) bool { return d.CustomerMobileNumber != "" },
+		"PaymentMethodProperties": func(d PaymentDetails) bool { return d.PaymentMethodProperties != nil },
 	}
 
-	for fieldName, validation := range fieldValidations {
-		if !validation(details) {
-			missingFields = append(missingFields, fieldName)
+	for paymentDetailProperty, validateFunc := range paymentDetailsValidations {
+		if !validateFunc(details) {
+			missingPaymentDetails = append(missingPaymentDetails, validation.ValidationError{
+				Name:   paymentDetailProperty,
+				Reason: "is empty",
+			})
 		}
 	}
 
-	if len(missingFields) > 0 {
-		return fmt.Errorf("Missing or invalid mandatory fields: %s", strings.Join(missingFields, ", "))
+	if len(missingPaymentDetails) > 0 {
+		return &validation.ValidationErrors{
+			Type:          "https://example.net/validation-error",
+			Title:         "Your request parameters didn't validate.",
+			InvalidParams: missingPaymentDetails,
+		}
 	}
-
 	return nil
-
 }
 
 func Process(details PaymentDetails) (string, error) {
-	// Add validation
-	if err := ValidatePaymentDetails(details); err != nil {
+	if err := CheckForMissingPaymentDetails(details); err != nil {
 		return "", err
 	}
-	return "dsdsdsdd", nil
+
+	// Perform actual payment processing here
+	// For demonstration, returning a success message
+	return "Payment processed successfully.", nil
 }

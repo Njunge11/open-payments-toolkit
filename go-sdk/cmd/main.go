@@ -9,8 +9,8 @@ import (
 
 func main() {
 	details := payment.PaymentDetails{
-		TransactionID:        "ewewe",
-		PaymentMethod:        "Mpesa",
+		TransactionID:        "",
+		PaymentMethod:        "",
 		CountryCode:          "KE",
 		Amount:               0,
 		CustomerMobileNumber: "+254726325093",
